@@ -48,13 +48,13 @@ def build_convnet_fingerprint_fun(num_hidden_features=[100, 100], fp_length=512,
     #import pdb; pdb.set_trace()
     # Specify weight shapes.
     parser = WeightsParser()
-    all_layer_sizes = [num_atom_features()] + num_hidden_features  # """ V:Concatinating 2 lists OUT: [62,100,100] """
+    all_layer_sizes = [num_atom_features()] + num_hidden_features  # """ V:Concatinating 2 lists OUT: [62,20,20, 20, 20] """
     print("num_atom_features ",num_atom_features())
     for layer in range(len(all_layer_sizes)):
         parser.add_weights(('layer output weights', layer), (all_layer_sizes[layer], fp_length))
         parser.add_weights(('layer output bias', layer),    (1, fp_length))
 
-    in_and_out_sizes = zip(all_layer_sizes[:-1], all_layer_sizes[1:]) #""" V :OUT: [(62,100),(100,100)]"""
+    in_and_out_sizes = zip(all_layer_sizes[:-1], all_layer_sizes[1:]) #""" V :OUT: [(62,20), (20,20), (20,20), (20,20)]"""
     print("in_and_out_sizes ",in_and_out_sizes)
     for layer, (N_prev, N_cur) in enumerate(in_and_out_sizes):
         parser.add_weights(("layer", layer, "biases"), (1, N_cur))
@@ -97,7 +97,7 @@ def build_convnet_fingerprint_fun(num_hidden_features=[100, 100], fp_length=512,
             layer_output = sum_and_stack(atom_outputs, array_rep['atom_list'])
             all_layer_fps.append(layer_output)
 
-        num_layers = len(num_hidden_features)
+        num_layers = len(num_hidden_features) #V: (num_layers = 4) , num_hidden_features = [20, 20, 20, 20]
         for layer in xrange(num_layers):
             write_to_fingerprint(atom_features, layer)
             atom_features = update_layer(weights, layer, atom_features, bond_features, array_rep,
