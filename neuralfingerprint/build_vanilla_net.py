@@ -45,7 +45,7 @@ def build_standard_net(layer_sizes, normalize, L2_reg, L1_reg=0.0, activation_fu
             cur_W = parser.get(W_vect, ('weights', layer))
             cur_B = parser.get(W_vect, ('biases', layer))
             cur_units = np.dot(cur_units, cur_W) + cur_B
-            import pdb; pdb.set_trace()
+            # import pdb; pdb.set_trace()
             if layer < len(layer_sizes) - 2:
                 if normalize:
                     cur_units = batch_normalize(cur_units)

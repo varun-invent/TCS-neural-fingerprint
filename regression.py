@@ -49,7 +49,7 @@ def train_nn(pred_fun, loss_fun, num_weights, train_smiles, train_raw_targets, t
         if iter % 10 == 0:
             print "max of weights", np.max(np.abs(weights))
             train_preds = undo_norm(pred_fun(weights, train_smiles[:num_print_examples]))
-            cur_loss = loss_fun(weights, train_smiles[:num_print_examples], train_targets[:num_print_examples]) # V: refers to line number #78 of
+            cur_loss = loss_fun(weights, train_smiles[:num_print_examples], train_targets[:num_print_examples]) # V: refers to line number #78 i.e.
                                                                                                                 # def loss_fun(weights, smiles, targets) of build_vanilla_net.py
             training_curve.append(cur_loss)
             print "Iteration", iter, "loss", cur_loss,\
@@ -122,8 +122,8 @@ def main():
     print "Task params", task_params
     print
     print "Starting Morgan fingerprint experiment..."
-    # test_loss_morgan = run_morgan_experiment()
-    test_loss_morgan = 0.0
+    test_loss_morgan = run_morgan_experiment()
+    # test_loss_morgan = 0.0
     print "Starting neural fingerprint experiment..."
     test_loss_neural = run_conv_experiment()
     print

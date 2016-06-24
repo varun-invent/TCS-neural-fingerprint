@@ -9,7 +9,7 @@ from build_vanilla_net import build_fingerprint_deep_net, relu, batch_normalize
 
 def fast_array_from_list(xs):
     # import pdb; pdb.set_trace()
-    print 'I am in fast_array_from_list'
+    # print 'I am in fast_array_from_list'
     return np.concatenate([np.expand_dims(x, axis=0) for x in xs], axis=0)
 
 def sum_and_stack(features, idxs_list_of_lists):
@@ -63,21 +63,22 @@ def build_convnet_fingerprint_fun(num_hidden_features=[100, 100], fp_length=512,
             parser.add_weights(weights_name(layer, degree), (N_prev + num_bond_features(), N_cur))
 
     def update_layer(weights, layer, atom_features, bond_features, array_rep, normalize=False):
-        # import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()  
         def get_weights_func(degree):
             return parser.get(weights, weights_name(layer, degree))
         layer_bias         = parser.get(weights, ("layer", layer, "biases"))
         layer_self_weights = parser.get(weights, ("layer", layer, "self filter"))
-        self_activations = np.dot(atom_features, layer_self_weights)
-        neighbour_activations = matmult_neighbors(
-            array_rep, atom_features, bond_features, get_weights_func)
-
-        total_activations = neighbour_activations + self_activations + layer_bias
+        self_activations = np.dot(atom_features, layer_self_weights)           
+        neighbour_activations = matmult_neighbors(   
+            array_rep, atom_features, bond_features, get_weights_func)             
+        import pdb; pdb.set_trace()
+        total_activations = neighbour_activations + self_activations + layer_bias 
+        print("Total activations", np.shape(total_activations))           
         if normalize:
             total_activations = batch_normalize(total_activations)
         return activation_function(total_activations)
 
-    def output_layer_fun_and_atom_activations(weights, smiles):
+    def output_layer_fun_and_atom_activations(weights, smiles):  # V: Came here from line # 108 def output_layer_fun(weights, smiles)
         """Computes layer-wise convolution, and returns a fixed-size output."""
         # import pdb; pdb.set_trace()
         array_rep = array_rep_from_smiles(tuple(smiles))
@@ -92,9 +93,9 @@ def build_convnet_fingerprint_fun(num_hidden_features=[100, 100], fp_length=512,
             cur_out_bias    = parser.get(weights, ('layer output bias', layer))
             # import pdb; pdb.set_trace()
             atom_outputs = softmax(cur_out_bias + np.dot(atom_features, cur_out_weights), axis=1)  #V: Smooth all the atom features and then find the softmax, i.e the FP
-            atom_activations.append(atom_outputs)   # V: Storing the FP produced from each layer
+            atom_activations.append(atom_outputs)   # V: Not needed for neural fingerprint
             # Sum over all atoms within a moleclue:
-            layer_output = sum_and_stack(atom_outputs, array_rep['atom_list'])
+            layer_output = sum_and_stack(atom_outputs, array_rep['atom_list'])  #V: array_rep['atom_list'] stores the indexes of atoms in each smile size: (100,)
             all_layer_fps.append(layer_output)
 
         num_layers = len(num_hidden_features) #V: (num_layers = 4) , num_hidden_features = [20, 20, 20, 20]
@@ -105,7 +106,7 @@ def build_convnet_fingerprint_fun(num_hidden_features=[100, 100], fp_length=512,
         write_to_fingerprint(atom_features, num_layers)
         return sum(all_layer_fps), atom_activations, array_rep
 
-    def output_layer_fun(weights, smiles):
+    def output_layer_fun(weights, smiles):  # V: Came here from line # 80 in build_vanilla_net.py
         #import pdb; pdb.set_trace()
         output, _, _ = output_layer_fun_and_atom_activations(weights, smiles)
         return output
