@@ -63,7 +63,7 @@ def build_convnet_fingerprint_fun(num_hidden_features=[100, 100], fp_length=512,
             parser.add_weights(weights_name(layer, degree), (N_prev + num_bond_features(), N_cur))
 
     def update_layer(weights, layer, atom_features, bond_features, array_rep, normalize=False):
-        # import pdb; pdb.set_trace()  
+        import pdb; pdb.set_trace()  
         def get_weights_func(degree):
             return parser.get(weights, weights_name(layer, degree))
         layer_bias         = parser.get(weights, ("layer", layer, "biases"))
@@ -71,7 +71,7 @@ def build_convnet_fingerprint_fun(num_hidden_features=[100, 100], fp_length=512,
         self_activations = np.dot(atom_features, layer_self_weights)           
         neighbour_activations = matmult_neighbors(   
             array_rep, atom_features, bond_features, get_weights_func)             
-        import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         total_activations = neighbour_activations + self_activations + layer_bias 
         print("Total activations", np.shape(total_activations))           
         if normalize:
