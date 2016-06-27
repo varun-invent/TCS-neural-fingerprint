@@ -75,13 +75,14 @@ def build_fingerprint_deep_net(net_params, fingerprint_func, fp_parser, fp_l2_pe
         net_weights         = combined_parser.get(weights, 'net weights')
         return fingerprint_weights, net_weights
 
-    def loss_fun(weights, smiles, targets):
+    def loss_fun(weights, smiles, targets):                            # V: Came from line # 53 in regression.py
         fingerprint_weights, net_weights = unpack_weights(weights)
         fingerprints = fingerprint_func(fingerprint_weights, smiles)   # V: fingerprint_func refers to line #108 output_layer_func(weights,smiles) in build_covnet.py,
                                                                        # This gives you the fixed size fingerprints of molecules 
         # import pdb; pdb.set_trace()
-        net_loss = net_loss_fun(net_weights, fingerprints, targets)    # V: This refers to def loss(w, X, targets): of line #54
-        if len(fingerprint_weights) > 0 and fp_l2_penalty > 0:
+        net_loss = net_loss_fun(net_weights, fingerprints, targets)    # V: This refers to def loss(w, X, targets): of line #55
+        if len(fingerprint_weights) > 0 and fp_l2_penalty > 0:         # V: True only while doing neural fingerprint experiment (and not morgan)
+            # print("In the fingerprint check")
             return net_loss + fp_l2_penalty * np.mean(fingerprint_weights**2)  # V: Didnt quite understand the loss
         else:
             return net_loss

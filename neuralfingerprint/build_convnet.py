@@ -27,16 +27,18 @@ def matmult_neighbors(array_rep, atom_features, bond_features, get_weights):
         atom_neighbors_list = array_rep[('atom_neighbors', degree)]
         bond_neighbors_list = array_rep[('bond_neighbors', degree)]
         if len(atom_neighbors_list) > 0:
+            # import pdb; pdb.set_trace()
             neighbor_features = [atom_features[atom_neighbors_list],
                                  bond_features[bond_neighbors_list]]
             # dims of stacked_neighbors are [atoms, neighbors, atom and bond features]
-            stacked_neighbors = np.concatenate(neighbor_features, axis=2)
-            summed_neighbors = np.sum(stacked_neighbors, axis=1)
-            activations = np.dot(summed_neighbors, get_weights(degree))  # V: 336 x 20
+            stacked_neighbors = np.concatenate(neighbor_features, axis=2) # V: Concatenates the atom and bond features 62 + 6 = 68 features for 'degree' = degree and outputs (no_atoms x 1 x 68)  
+            summed_neighbors = np.sum(stacked_neighbors, axis=1) # V: removes the singleton dimension and outputs (no_atoms x 68)
+            activations = np.dot(summed_neighbors, get_weights(degree))  # V: 336 x 20 for 1st iteration
             activations_by_degree.append(activations)
     # This operation relies on atoms being sorted by degree,
     # in Node.graph_from_smiles_tuple()
-    return np.concatenate(activations_by_degree, axis=0)
+    import pdb; pdb.set_trace()
+    return np.concatenate(activations_by_degree, axis=0) # V: outputs a matrix of size 1370 x 20 for first call to matmult_neighbors
 
 def weights_name(layer, degree):
     return "layer " + str(layer) + " degree " + str(degree) + " filter"
@@ -63,7 +65,7 @@ def build_convnet_fingerprint_fun(num_hidden_features=[100, 100], fp_length=512,
             parser.add_weights(weights_name(layer, degree), (N_prev + num_bond_features(), N_cur))
 
     def update_layer(weights, layer, atom_features, bond_features, array_rep, normalize=False):
-        import pdb; pdb.set_trace()  
+        # import pdb; pdb.set_trace()  
         def get_weights_func(degree):
             return parser.get(weights, weights_name(layer, degree))
         layer_bias         = parser.get(weights, ("layer", layer, "biases"))
@@ -73,7 +75,7 @@ def build_convnet_fingerprint_fun(num_hidden_features=[100, 100], fp_length=512,
             array_rep, atom_features, bond_features, get_weights_func)             
         # import pdb; pdb.set_trace()
         total_activations = neighbour_activations + self_activations + layer_bias 
-        print("Total activations", np.shape(total_activations))           
+        # print("Total activations", np.shape(total_activations))           
         if normalize:
             total_activations = batch_normalize(total_activations)
         return activation_function(total_activations)
@@ -131,8 +133,9 @@ def array_rep_from_smiles(smiles):
                 'atom_list'     : molgraph.neighbor_list('molecule', 'atom'), # List of lists.
                 'rdkit_ix'      : molgraph.rdkit_ix_array()}  # For plotting only.
     for degree in degrees:
+        # import pdb; pdb.set_trace()
         arrayrep[('atom_neighbors', degree)] = \
-            np.array(molgraph.neighbor_list(('atom', degree), 'atom'), dtype=int)
+            np.array(molgraph.neighbor_list(('atom', degree), 'atom'), dtype=int)    #V: The degree of an atom is defined to be its number of directly-bonded neighbors.
         arrayrep[('bond_neighbors', degree)] = \
             np.array(molgraph.neighbor_list(('atom', degree), 'bond'), dtype=int)
     # import pdb; pdb.set_trace()

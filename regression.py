@@ -48,6 +48,7 @@ def train_nn(pred_fun, loss_fun, num_weights, train_smiles, train_raw_targets, t
     def callback(weights, iter):
         if iter % 10 == 0:
             print "max of weights", np.max(np.abs(weights))
+            # import pdb; pdb.set_trace()
             train_preds = undo_norm(pred_fun(weights, train_smiles[:num_print_examples]))
             cur_loss = loss_fun(weights, train_smiles[:num_print_examples], train_targets[:num_print_examples]) # V: refers to line number #78 i.e.
                                                                                                                 # def loss_fun(weights, smiles, targets) of build_vanilla_net.py
