@@ -37,7 +37,7 @@ def matmult_neighbors(array_rep, atom_features, bond_features, get_weights):
             activations_by_degree.append(activations)
     # This operation relies on atoms being sorted by degree,
     # in Node.graph_from_smiles_tuple()
-    import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     return np.concatenate(activations_by_degree, axis=0) # V: outputs a matrix of size 1370 x 20 for first call to matmult_neighbors
 
 def weights_name(layer, degree):
@@ -95,7 +95,7 @@ def build_convnet_fingerprint_fun(num_hidden_features=[100, 100], fp_length=512,
             cur_out_bias    = parser.get(weights, ('layer output bias', layer))
             # import pdb; pdb.set_trace()
             atom_outputs = softmax(cur_out_bias + np.dot(atom_features, cur_out_weights), axis=1)  #V: Smooth all the atom features and then find the softmax, i.e the FP
-            atom_activations.append(atom_outputs)   # V: Not needed for neural fingerprint
+            atom_activations.append(atom_outputs)   # V: Not needed for neural fingerprint, needed for visualization in neural FP
             # Sum over all atoms within a moleclue:
             layer_output = sum_and_stack(atom_outputs, array_rep['atom_list'])  #V: array_rep['atom_list'] stores the indexes of atoms in each smile size: (100,)
             all_layer_fps.append(layer_output)
@@ -143,6 +143,6 @@ def array_rep_from_smiles(smiles):
 
 def build_conv_deep_net(conv_params, net_params, fp_l2_penalty=0.0):
     """Returns loss_fun(all_weights, smiles, targets), pred_fun, combined_parser."""
-    conv_fp_func, conv_parser = build_convnet_fingerprint_fun(**conv_params)
-    return build_fingerprint_deep_net(net_params, conv_fp_func, conv_parser, fp_l2_penalty)
+    conv_fp_func, conv_parser = build_convnet_fingerprint_fun(**conv_params)   # V: conv_fp_func is the func that computes the fingerprints, conv_parser is the weights parser for fp net
+    return build_fingerprint_deep_net(net_params, conv_fp_func, conv_parser, fp_l2_penalty) # V: creates and returns loss_fun, pred_fun, combined_parser of build_vanilla_net.py, loss_fun and pred_func is of the combined net i.e. fp+vanilla net
 

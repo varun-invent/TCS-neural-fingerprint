@@ -73,6 +73,7 @@ def build_fingerprint_deep_net(net_params, fingerprint_func, fp_parser, fp_l2_pe
     def unpack_weights(weights):
         fingerprint_weights = combined_parser.get(weights, 'fingerprint weights')
         net_weights         = combined_parser.get(weights, 'net weights')
+        # import pdb;pdb.set_trace()
         return fingerprint_weights, net_weights
 
     def loss_fun(weights, smiles, targets):                            # V: Came from line # 53 in regression.py

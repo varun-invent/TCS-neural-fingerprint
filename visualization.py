@@ -101,6 +101,7 @@ def train_nn(pred_fun, loss_fun, num_weights, train_smiles, train_raw_targets, t
                                             train_smiles, train_targets)
 
     num_iters = train_params['num_epochs'] * len(train_smiles) / train_params['batch_size']
+    # num_iters = 20
     trained_weights = adam(grad_fun_with_data, init_weights, callback=callback,
                            num_iters=num_iters, step_size=train_params['learn_rate'],
                            b1=train_params['b1'], b2=train_params['b2'])
@@ -132,7 +133,7 @@ def train_neural_fingerprint():
     print "-" * 80
     print "Mean predictor"
     y_train_mean = np.mean(train_targets)
-    print_performance(lambda x : y_train_mean)
+    print_performance(lambda x : y_train_mean)  # V: Doubt
 
     print "Task params", params
     nn_train_params, vanilla_net_params = parse_training_params(params)
@@ -140,7 +141,7 @@ def train_neural_fingerprint():
 
     print "Convnet fingerprints with neural net"
     loss_fun, pred_fun, conv_parser = \
-        build_conv_deep_net(conv_arch_params, vanilla_net_params, params['l2_penalty'])
+        build_conv_deep_net(conv_arch_params, vanilla_net_params, params['l2_penalty'])  # V: loss_fun and pred_func and conv_parser(=combined_parser) is of the combined net i.e. fp+vanilla net
     num_weights = len(conv_parser)
     predict_func, trained_weights, conv_training_curve = \
          train_nn(pred_fun, loss_fun, num_weights, train_inputs, train_targets,
@@ -167,10 +168,12 @@ def construct_atom_neighbor_list(array_rep):
     atom_neighbour_list = []
     for degree in degrees:
         atom_neighbour_list += [list(neighbours) for neighbours in array_rep[('atom_neighbors', degree)]]
+    # import pdb; pdb.set_trace()
     return atom_neighbour_list
 
 
 def plot(trained_weights):
+    import pdb; pdb.set_trace()
     print "Loading training data..."
     traindata, valdata, testdata = load_data(task_params['data_file'],
                         (task_params['N_train'], task_params['N_valid'], task_params['N_test']),
@@ -190,8 +193,8 @@ def plot(trained_weights):
         for atom_ix in atom_ixs:
             parent_molecule_dict[atom_ix] = mol_ix
 
-    atom_neighbor_list = construct_atom_neighbor_list(array_rep)
-
+    atom_neighbor_list = construct_atom_neighbor_list(array_rep)  #V : is a list of lists of size (10631,x) where x is the list containing indexs of neigbors of atom indexed by row number
+                                                                  #V : also note that the atom list is sorted according to the degree      
     def get_neighborhood_ixs(array_rep, cur_atom_ix, radius):
         # Recursive function to get indices of all atoms in a certain radius.
         if radius == 0:
@@ -210,17 +213,19 @@ def plot(trained_weights):
 
     net_loss_fun, net_pred_fun, net_parser = build_standard_net(**vanilla_net_params)
     net_weights = combined_parser.get(trained_weights, 'net weights')
-    last_layer_weights = net_parser.get(net_weights, ('weights', 0))
+    # import pdb; pdb.set_trace()
+    last_layer_weights = net_parser.get(net_weights, ('weights', 0))  #V: coffecients of linear regressor
 
     for fp_ix in range(params['fp_length']):
         print "FP {0} has linear regression coefficient {1}".format(fp_ix, last_layer_weights[fp_ix][0])
         combined_list = []
-        for radius in all_radii:
+        for radius in all_radii:                         ####################### HERE ###################
             fp_activations = atom_activations[radius][:, fp_ix]
             combined_list += [(fp_activation, atom_ix, radius) for atom_ix, fp_activation in enumerate(fp_activations)]
 
         unique_list = remove_duplicates(combined_list, key_lambda=lambda x: x[0])
         combined_list = sorted(unique_list, key=lambda x: -x[0])
+        import pdb; pdb.set_trace()
 
         for fig_ix in range(num_figs_per_fp):
             # Find the most-activating atoms for this fingerprint index, across all molecules and depths.
@@ -238,9 +243,9 @@ def plot(trained_weights):
 if __name__ == '__main__':
     # Training.  Only need to run this part if we haven't yet saved results.pkl
     trained_network_weights = train_neural_fingerprint()
-    with open('results.pkl', 'w') as f:
+    with open('results.pkl', 'w') as f:                             #V: Doubt
         pickle.dump(trained_network_weights, f)
-
+    # import pdb;pdb.set_trace()
     # Plotting.
     with open('results.pkl') as f:
         trained_weights = pickle.load(f)
