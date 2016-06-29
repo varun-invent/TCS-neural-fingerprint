@@ -100,8 +100,8 @@ def train_nn(pred_fun, loss_fun, num_weights, train_smiles, train_raw_targets, t
     grad_fun_with_data = build_batched_grad(grad_fun, train_params['batch_size'],
                                             train_smiles, train_targets)
 
-    num_iters = train_params['num_epochs'] * len(train_smiles) / train_params['batch_size']
-    # num_iters = 20
+    # num_iters = train_params['num_epochs'] * len(train_smiles) / train_params['batch_size']
+    num_iters = 20
     trained_weights = adam(grad_fun_with_data, init_weights, callback=callback,
                            num_iters=num_iters, step_size=train_params['learn_rate'],
                            b1=train_params['b1'], b2=train_params['b2'])
@@ -114,6 +114,7 @@ def train_nn(pred_fun, loss_fun, num_weights, train_smiles, train_raw_targets, t
 
 def train_neural_fingerprint():
     print "Loading data..."
+    # import pdb; pdb.set_trace()
     traindata, valdata, testdata = load_data(task_params['data_file'],
                         (task_params['N_train'], task_params['N_valid'], task_params['N_test']),
                         input_name='smiles', target_name=task_params['target_name'])
@@ -143,9 +144,11 @@ def train_neural_fingerprint():
     loss_fun, pred_fun, conv_parser = \
         build_conv_deep_net(conv_arch_params, vanilla_net_params, params['l2_penalty'])  # V: loss_fun and pred_func and conv_parser(=combined_parser) is of the combined net i.e. fp+vanilla net
     num_weights = len(conv_parser)
+    # import pdb; pdb.set_trace()
     predict_func, trained_weights, conv_training_curve = \
          train_nn(pred_fun, loss_fun, num_weights, train_inputs, train_targets,
                  nn_train_params, validation_smiles=val_inputs, validation_raw_targets=val_targets)
+    # import pdb; pdb.set_trace()
     print_performance(predict_func)
     return trained_weights
 
@@ -173,7 +176,7 @@ def construct_atom_neighbor_list(array_rep):
 
 
 def plot(trained_weights):
-    import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     print "Loading training data..."
     traindata, valdata, testdata = load_data(task_params['data_file'],
                         (task_params['N_train'], task_params['N_valid'], task_params['N_test']),
@@ -185,6 +188,7 @@ def plot(trained_weights):
     output_layer_fun, parser, compute_atom_activations = \
        build_convnet_fingerprint_fun(**conv_arch_params)
     atom_activations, array_rep = compute_atom_activations(trained_weights, train_smiles)
+    # import pdb;pdb.set_trace()
 
     if not os.path.exists('figures'): os.makedirs('figures')
 
@@ -219,13 +223,14 @@ def plot(trained_weights):
     for fp_ix in range(params['fp_length']):
         print "FP {0} has linear regression coefficient {1}".format(fp_ix, last_layer_weights[fp_ix][0])
         combined_list = []
-        for radius in all_radii:                         ####################### HERE ###################
+        for radius in all_radii:                         # V : radii is the total number of layers  (input h1 h2 h3) = [0,1,2,3]
             fp_activations = atom_activations[radius][:, fp_ix]
-            combined_list += [(fp_activation, atom_ix, radius) for atom_ix, fp_activation in enumerate(fp_activations)]
+            combined_list += [(fp_activation, atom_ix, radius) for atom_ix, fp_activation in enumerate(fp_activations)] # V: Size = (4*10631,3)
 
+        # import pdb;pdb.set_trace()
         unique_list = remove_duplicates(combined_list, key_lambda=lambda x: x[0])
         combined_list = sorted(unique_list, key=lambda x: -x[0])
-        import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
 
         for fig_ix in range(num_figs_per_fp):
             # Find the most-activating atoms for this fingerprint index, across all molecules and depths.

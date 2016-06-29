@@ -74,7 +74,8 @@ def build_convnet_fingerprint_fun(num_hidden_features=[100, 100], fp_length=512,
         neighbour_activations = matmult_neighbors(   
             array_rep, atom_features, bond_features, get_weights_func)             
         # import pdb; pdb.set_trace()
-        total_activations = neighbour_activations + self_activations + layer_bias 
+        total_activations = neighbour_activations + self_activations + layer_bias    ### DOUBT : if i check the atom features here for visualisation, it is 1370
+        # import pdb; pdb.set_trace() 
         # print("Total activations", np.shape(total_activations))           
         if normalize:
             total_activations = batch_normalize(total_activations)
@@ -82,7 +83,7 @@ def build_convnet_fingerprint_fun(num_hidden_features=[100, 100], fp_length=512,
 
     def output_layer_fun_and_atom_activations(weights, smiles):  # V: Came here from line # 108 def output_layer_fun(weights, smiles)
         """Computes layer-wise convolution, and returns a fixed-size output."""
-        # import pdb; pdb.set_trace()
+        import pdb; pdb.set_trace()
         array_rep = array_rep_from_smiles(tuple(smiles))
         atom_features = array_rep['atom_features']  # V: (1370,62)
         bond_features = array_rep['bond_features'] # V: (1416,6)
