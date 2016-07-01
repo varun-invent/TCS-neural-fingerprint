@@ -1,0 +1,55 @@
+Neural Fingerprint
+
+This report is to explain the working of the code from the paper "Convolutional Networks on Graphs for Learning Molecular Fingerprints". Though the title of the paper says "Convolution Networks", the network that have constructed is quite different from the traditional Covolution Networks which we can come across while working with images or audio signals. I will explain about it in the next section. I have considered the molecular package RDKit used as a black box.
+
+Dataset: They have used the solubility dataset \citep{delaney2004esol}. SMILES representation of molecules were used along with solubility as target labels. They formed it as regression problem.
+
+Architecture: 
+I like to call it a 2 way neural network - horizontal pass and vertical pass.
+A 4 layered neural net is used. [Input_Layer, Hidden_Layer1, Hidden_Layer2, Hidden_Layer3]. Input is forward propogated via these layers. - I call this a horizontal pass. Now you may wonder where is the output layer. There is no single output layer which a traditional neural network has. Instead, output is calculated at each layer (including the Input_Layer). - I call this the vertical pass. 
+
+
+For horizontal pass, inputs of the previous layer is tranformed to inputs of the next layer. So there are 3 Such transformations. At each horizontal transformation, the atom features at previous layer is first transformed by some weight matrix aka \textit{self filter}, then their transformed outputs aka \textit{self activations} are summed up with the transformed features of its neighbouring atoms and bonds. It is done by first finding the neighboring atoms and bonds of each atom, finding their feature vectors and then concatenating them. These concatenated features are again transformed by another weight matrix aka \textit{filter} to give \textit{activations by degree}. Degree of an atom is defined to be its number of directly-bonded neighbors. As any atom can have maximum of 5 degrees (for organic molecules), we need 5 different \textit(fiters). Atoms are sorted according to the degrees. The top atom is the atom of degree 0 or 1 and the last atom is of maximum degree of all the atoms in the dataset. For each degree some set of atoms will be selected and their neighbours will be found out. Then the neighbours belonging to a particular degree will be multiplied by a particular \textit{filter} to get \textit{activations by degree} for that particular degree. This is done for all the degrees. 
+
+For vertical pass, input of the current layer is multiplied by output weight matrix aka \textit{layer output weights} which results in a fixed size vector. After multiplyig weight matrix with the set of atoms and getting a huge matrix of size (#atoms,FP_size), we then sum up the subsets of atom activations that belong to a seperate molecule. This results in a matrix of size (#molecules,FP_size). We get this type of different matrix for each layer(including the Input_Layer). Next, sum up these matrices from each layer to get a single Fingerprint matrix of size (#molecules,FP_size). This is our final fingerprint output which we are going to improve later by updating the weights of the "convolution" aka fingerprint network by gradient descent.
+
+
+So, in total we deal with 3 types of weight matrices.
+
+1. Self filter (One for each transformation among layers)
+2. Filter (One for each degree)
+3. Output Weight matrix (One for each layer including the Input_Layer)
+
+
+This fingerprint is treated as input to a linear regression module or another neural network to predict solubility. The root mean squared error in solubility is backpropogated till the end of Fingerprint network to tune the weights of the complete network along with the weights of the linear regressor.
+
+Visualization :
+
+To visualize 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1] @article{delaney2004esol,
+  title={ESOL: estimating aqueous solubility directly from molecular structure},
+  author={Delaney, John S},
+  journal={Journal of chemical information and computer sciences},
+  volume={44},
+  number={3},
+  pages={1000--1005},
+  year={2004},
+  publisher={ACS Publications}
+}
