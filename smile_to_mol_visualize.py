@@ -27,7 +27,9 @@ def draw_molecule_with_highlights(filename, smiles, highlight_atoms):
 
 
 def main():
+	print "This is the file"
 	mol_smile = [('OCC3OC(OCC2OC(OC(C#N)c1ccccc1)C(O)C(O)C2O)C(O)C(O)C3O'),('c1ccsc1')]
+	# mol_smile = mol_smile[1]
 	# m = Chem.MolFromSmiles(mol_smile)
 	# alist = m.GetAtoms()
 	# a = alist[0]
@@ -47,8 +49,8 @@ def main():
 	filename = 'varun_visualize_atoms'
 	molecule_idx = 1
 	highlight_atom_nodes = arrayrep['atom_list'][molecule_idx]
-	# pdb.set_trace()
 	highlight_list_rdkit = [arrayrep['rdkit_ix'][our_ix] for our_ix in highlight_atom_nodes]
+	pdb.set_trace()
 	draw_molecule_with_highlights(filename, mol_smile[molecule_idx],highlight_list_rdkit[0:3])
 
 if __name__ == '__main__':
