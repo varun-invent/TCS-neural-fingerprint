@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-2.5-1.40.14 (TeX Live 2013/Debian) (format=pdflatex 2015.8.24)  5 JUL 2016 12:31
+This is pdfTeX, Version 3.1415926-2.5-1.40.14 (TeX Live 2013/Debian) (format=pdflatex 2015.8.24)  15 JUL 2016 14:42
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -8,8 +8,8 @@ LaTeX2e <2011/06/27>
 Babel <3.9h> and hyphenation patterns for 4 languages loaded.
 (/usr/share/texlive/texmf-dist/tex/latex/base/report.cls
 Document Class: report 2007/10/19 v1.4h Standard LaTeX document class
-(/usr/share/texlive/texmf-dist/tex/latex/base/size11.clo
-File: size11.clo 2007/10/19 v1.4h Standard LaTeX file (size option)
+(/usr/share/texlive/texmf-dist/tex/latex/base/size10.clo
+File: size10.clo 2007/10/19 v1.4h Standard LaTeX file (size option)
 )
 \c@part=\count79
 \c@chapter=\count80
@@ -160,6 +160,10 @@ Package: float 2001/11/08 v1.3d Float enhancements (AL)
 \@float@everytoks=\toks21
 \@floatcapt=\box29
 )
+
+LaTeX Warning: Unused global option(s):
+    [Timesnewroman].
+
 (./TCS_neuralfp_report.aux)
 \openout1 = `TCS_neuralfp_report.aux'.
 
@@ -247,60 +251,94 @@ e
  [1
 
 ]
-Overfull \hbox (60.04814pt too wide) in paragraph at lines 28--37
+Underfull \hbox (badness 10000) in paragraph at lines 22--25
+
+ []
+
+[2]
+Overfull \hbox (9.15253pt too wide) in paragraph at lines 37--38
+\OT1/cmr/m/n/10 the neigh-bour-ing bonds (not quite sure about z). See ar-ray[]
+rep[]from[]smiles()
+ []
+
+
+Overfull \hbox (40.68793pt too wide) in paragraph at lines 48--57
  [][] 
  []
 
-[2] <complete_arch.png, id=18, 670.505pt x 176.66pt>
+[3] <complete_arch.png, id=21, 670.505pt x 176.66pt>
 File: complete_arch.png Graphic file (type png)
  <use complete_arch.png>
-Package pdftex.def Info: complete_arch.png used on input line 52.
+Package pdftex.def Info: complete_arch.png used on input line 72.
 (pdftex.def)             Requested size: 335.25168pt x 88.32977pt.
 
-Underfull \hbox (badness 10000) in paragraph at lines 57--58
+Underfull \hbox (badness 10000) in paragraph at lines 77--78
 
  []
 
-LaTeX Font Info:    Try loading font information for OMS+cmr on input line 62.
+[4 <./complete_arch.png>]
+LaTeX Font Info:    Try loading font information for OMS+cmr on input line 109.
+
+
 (/usr/share/texlive/texmf-dist/tex/latex/base/omscmr.fd
 File: omscmr.fd 1999/05/25 v2.5h Standard LaTeX font definitions
 )
-LaTeX Font Info:    Font shape `OMS/cmr/m/n' in size <10.95> not available
-(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 62.
- [3 <./complete_arch.png>] [4]
+LaTeX Font Info:    Font shape `OMS/cmr/m/n' in size <10> not available
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 109.
+
 
 LaTeX Warning: No positions in optional float specifier.
-               Default added (so using `tbp') on input line 118.
+               Default added (so using `tbp') on input line 119.
 
-<neural_fp.png, id=28, 718.685pt x 877.2775pt>
+<neural_fp.png, id=27, 718.685pt x 877.2775pt>
 File: neural_fp.png Graphic file (type png)
  <use neural_fp.png>
-Package pdftex.def Info: neural_fp.png used on input line 122.
+Package pdftex.def Info: neural_fp.png used on input line 123.
 (pdftex.def)             Requested size: 359.34161pt x 438.63768pt.
 
-(./TCS_neuralfp_report.bbl [5] [6 <./neural_fp.png>]) [7
+Overfull \hbox (14.34161pt too wide) in paragraph at lines 123--124
+ [][] 
+ []
 
-]
-(./TCS_neuralfp_report.aux) ) 
+[5] [6 <./neural_fp.png>]
+Underfull \hbox (badness 10000) in paragraph at lines 134--135
+
+ []
+
+
+Overfull \hbox (10.27478pt too wide) in paragraph at lines 145--146
+\OT1/cmr/m/n/10 does it be-long to. This is done us-ing dic-tio-nary value of a
+r-ray[]rep[`atom[]list'].
+ []
+
+(./TCS_neuralfp_report.bbl [7]) [8
+
+] (./TCS_neuralfp_report.aux)
+
+LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
+
+ ) 
 Here is how much of TeX's memory you used:
- 3086 strings out of 494985
- 43078 string characters out of 6180356
- 106806 words of memory out of 5000000
- 6264 multiletter control sequences out of 15000+600000
- 10354 words of font info for 37 fonts, out of 8000000 for 9000
+ 3085 strings out of 494985
+ 43042 string characters out of 6180356
+ 108826 words of memory out of 5000000
+ 6263 multiletter control sequences out of 15000+600000
+ 9668 words of font info for 35 fonts, out of 8000000 for 9000
  36 hyphenation exceptions out of 8191
- 37i,7n,28p,1169b,237s stack positions out of 5000i,500n,10000p,200000b,80000s
-</usr/share/texlive/texmf-dist/fonts/type1/public/
-amsfonts/cm/cmbx10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfon
-ts/cm/cmbx12.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/
-cmr10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.p
-fb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr17.pfb></us
-r/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/shar
-e/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb>
-Output written on TCS_neuralfp_report.pdf (8 pages, 136576 bytes).
+ 37i,7n,28p,1333b,229s stack positions out of 5000i,500n,10000p,200000b,80000s
+</usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb></us
+r/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb></usr/shar
+e/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/share/texl
+ive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb></usr/share/texlive/tex
+mf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/share/texlive/texmf-dist
+/fonts/type1/public/amsfonts/cm/cmr12.pfb></usr/share/texlive/texmf-dist/fonts/
+type1/public/amsfonts/cm/cmr17.pfb></usr/share/texlive/texmf-dist/fonts/type1/p
+ublic/amsfonts/cm/cmsy10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/
+amsfonts/cm/cmti10.pfb>
+Output written on TCS_neuralfp_report.pdf (9 pages, 160165 bytes).
 PDF statistics:
- 64 PDF objects out of 1000 (max. 8388607)
- 42 compressed objects within 1 object stream
+ 75 PDF objects out of 1000 (max. 8388607)
+ 50 compressed objects within 1 object stream
  0 named destinations out of 1000 (max. 500000)
  11 words of extra memory for PDF output out of 10000 (max. 10000000)
 

@@ -1,4 +1,4 @@
-\documentclass[11pt,a4paper]{report}
+\documentclass[10pt,a4paper,Times new roman]{report}
 %\usepackage{setspace}
 %\onehalfspacing 
 \usepackage[square,numbers,comma,sort&compress]{natbib}
@@ -8,19 +8,39 @@
 %\usepackage{hyperref}
 %\usepackage[nottoc]{tocbibind}
 \begin{document}
-\title{An explanation of the paper -\\``Neural fingerprint generation of molecules"}
+\title{An explanation of the paper -\\``Convolutional Networks on Graphs
+for Learning Molecular Fingerprints"}
 \author{Varun Kumar\\ BITS-Pilani, K.K. Birla Goa Campus}
 \maketitle
 \tableofcontents
 \pagebreak
 
 \section{Introduction}
-This report explains the working of the code from the paper "Convolutional Networks on Graphs for Learning Molecular Fingerprints". Though the title of the paper says "Convolution Networks", the network that thay have constructed is quite different from the traditional Covolution Networks which we have come across while working with images or audio signals. Author calls it convolution network because same operation is performed over all the atoms in a molecule, this is similar to using the same filter on multiple places of the image. As the next layer of the convolutional network gets a larger receptive field of the image as compared to the previous layer, here also, with every new layer(or radius) the receptive field of the graph on the atoms is increased. I have considered the molecular package RDKit used in the paper as a black box. It was used to construct graph from SMILES representation of molecules and extract the handcrafted features of atoms and bonds. They formulated the problem of extracting fixed sized features as a regression problem for predicting solubility which generates these fixed sized features in between.
+This report explains the working of the code from the paper ``Convolutional Networks on Graphs for Learning Molecular Fingerprints". This work aims towards extracting fixed length features of arbitrary sized graphs. Though the title of the paper says `Convolution Networks', the network that thay have constructed is quite different from the traditional Covolution Networks which we come across while working with images or audio signals. Author calls it convolution network because same operation is performed over all the atoms in a molecule, this is, they say, is similar to using the same filter ot multiple places of the image. As the next layer of the convolutional network gets a larger receptive field of the image as compared to the previous layer, here also, with every new layer(or increasing radius) the receptive field of a single `neuron' on the atoms is increased. I have considered the molecular package RDKit used in the paper as a black box. It was used to construct graph from SMILES representation of molecules and extract the handcrafted features of atoms and bonds. It was also used to create images of the molecules. They formulated the problem of extracting fixed sized features as a regression problem for predicting solubility which generates these fixed sized features in between.
 
 \section{Dataset}
-They have used the solubility dataset \citep{delaney2004esol} to predict solubility. SMILES representation of molecules were used for training with `measured solubility in moles per litre' as target labels. A snapshot of the dataset used is shown in the Table~\ref{dataset}.
-Each SMILE converted to a graph with the nodes representing atoms and edges representing bonds. Handcrafted features are extracted from each node and edge and is called \textit{atom feature} and \textit{bond feature} respectively. A tensor is created of these atom features for all the nodes of graph of the molecules taken in the training set/minibatch. This \textit{input tensor} of size (\#Nodes, length(atom features)) is used as the input to neural network. Hence each atom becomes a unique node i.e. the same carbon atom present in different molecules will be referred to as different nodes.
+They have used the solubility dataset \citep{delaney2004esol} to extract the features and predict solubility of compounds. SMILES representation of molecules were used for training with `measured solubility in moles per litre' as target labels. A snapshot of the dataset used is shown in the Table~\ref{dataset}.
+Each SMILE is converted to a graph with the nodes representing atoms and edges representing bonds. Handcrafted features are extracted from each node and edge and is called \textit{atom\_features} and \textit{bond\_features} respectively. A tensor is created of these \textit{atom\_features} for all the nodes of graphs/molecules taken in the training set/minibatch. This \textit{input\_tensor} of size (\#Nodes, length(atom\_features)) is used as the input to neural network. Hence each atom becomes a unique node i.e. the same carbon atom present in different molecules will be referred to as different nodes. From now onwards I will refer atom as node and molecule as graph. 
+A dictionary is created which stores the data used in training. This dictionary is named array\_rep (array representation of atoms and bonds) which contains the following key value pairs:\\
+\begin{enumerate}
 
+\item array\_rep[`atom\_features'] - The value for this is a matrix of size (\#Nodes, length(atom\_features)). It stores the node features (of the dataset) sorted according to their degrees.
+
+\item array\_rep[`bond\_features'] - The value for this is a matrix of size (\#Edges, length(bond\_features)). It stores the edge features (of the dataset) sorted according to their degrees.
+
+\item array\_rep[`atom\_list'] - The value for this is a matrix of size (\#SMILES, x); where the value of x is variable and it  represents the index of nodes in each SMILE/graph/compound/molecule. Each index points to the index of atom in array\_rep[`atom\_features']
+
+\item array\_rep[`rdkit\_ix'] - RDKit, after converting each SMILE to a graph, numbers each node in it (graph) to a unique number (number is unique within the same graph but can be reused among multiple graphs). The value for this dictionary key is an array which contains numerical identifier of the nodes set by RDKit which gives its position in the graph to which each of them belongs.
+
+\item array\_rep[(`atom\_neighbors',\textbf{degree})] - This gives the atom/node neighbors of all the atoms/nodes in the dataset for the  particular \textbf{degree}. Its size is (\#Nodes of degree = \textbf{degree} , y); where the value of y is variable and it represents the neighbouring directly bonded nodes.
+
+\item array\_rep[(`bond\_neighbors',\textbf{degree})] - It gives the matrix of size (\#Nodes of degree = \textbf{degree} , z); where the value of z is variable and it represents the neighbouring bonds (not quite sure about z). See array\_rep\_from\_smiles() in build\_convnet.py for implementation details regarding all the above points in this section. 
+
+\end{enumerate}
+
+%A snapshot of the values of the above keys is shown in the following figures for 100 compounds/SMILES/molecules.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%IMAGES SHOW NOW#############################################
+ 
 \begin{table}[H]
 \centering
 \caption{Snapshot of dataset used}
@@ -37,11 +57,11 @@ c1ccsc1                                                & -1.33                  
 \end{table}
 
 \section{Architecture }
-They created the architecture to extract a fixed size fingerprint of a molecule and then used it to predict its solubility using another neural network. In place of a full neural network a linear regressor can also be used (See figure~\ref{complete_arch}) for the task of prediction. They trained the network end to end thereby generating the features in between. I like to call this architecture a 2 way neural network with a horizontal pass and a vertical pass.
+They created the architecture to extract a fixed size fingerprint of a molecule and then used it to predict its solubility using another neural network. In place of a neural network, a linear regressor can also be used (See figure~\ref{complete_arch}) for the task of prediction. They trained the network end to end thereby generating the features in between. I like to call this architecture a 2 way neural network - having a horizontal pass and a vertical pass.
 
-A 4 layered neural net is used for feature extraction. Layers are - [ Input\_Layer, Hidden\_Layer1, Hidden\_Layer2, Hidden\_Layer3 ]. The layer and radius is used interchangably in this report.
-%Each SMILES representation of a molecule is first converted to a graph using RDKit. The nodes of graph are considered as atoms and edges as bonds. And then handcrafted atom features and bond features are extracted using RDKit. The tensor of all atom features are used as input to the neural network aka neural fingerprint network.
-\textit{Input tensor} is forward propogated via these layers described above. - I call this a horizontal pass. The reason behind forward propogating the whole tensor at once is that after every layer you need to update the features of all the atom nodes in the tensor together. Because at each update, the atom features are summed up with the neighbouring atom features i.e. after every layer/radius the atom node contains a representation of its neighbouring atom nodes as well. Therefore it is manditory that all the neighbouring nodes have the features of the same layer.
+A 4 layered neural net aka fingerprint network is used for feature extraction. Layers are - [ Input\_Layer, Hidden\_Layer1, Hidden\_Layer2, Hidden\_Layer3 ]. The layer and radius is used interchangably in this report. This radius is analogous to the radius for circular fingerprints. At radius 0, only the atom itself is considered. At level 1, atom along with its immediate bonded neighbours is considered. At level 2, atom along with its neighbours and its neighbours' neighbours are considered and so on.
+
+\textit{Input tensor} is forward propogated via these layers described above. - I call this a horizontal pass. The reason behind forward propogating the whole tensor at once is that after every layer you need to update the features of all the atom nodes in the tensor together. Because at each update, the atom features are summed up with the neighbouring atom features i.e. after every layer/radius the atom node contains a representation of its neighbouring atom nodes as well. Therefore it is manditory that all the neighbouring nodes have the features of the same layer/radius.
 
 Now you may wonder where is the output layer. There is no single output layer like a traditional neural network has. Instead, output is calculated at each layer (including the Input\_Layer). - I call this the vertical pass. 
 
@@ -56,34 +76,32 @@ Now you may wonder where is the output layer. There is no single output layer li
 
 \textbf{Horizontal Pass}:\\
 
-In horizontal pass, outputs of the previous layer is updated and tranformed as inputs of the next layer. So there are 3 Such transformations as per the architecture shown in the previous section. Let us look at what happens at each transformation.
+In horizontal pass, outputs of the previous layer is updated and tranformed as inputs of the next layer. So there are 3 such transformations as per the architecture shown in the previous section. Let us look at what happens at each transformation. 
  
- \begin{itemize}
- \item At each layer, the atom features of previous layer is first transformed by some weight matrix aka \textit{self filter} (which changes the size of the features to size of the next layer), resulting in \textit{self activations}.
+ \begin{enumerate}
+ \item At each layer, the atom/node features of previous layer is first transformed by some weight matrix aka \textit{self filter} (which changes the size of the features to size of the next layer), resulting in \textit{self activations}.
  
- \item These \textit{self activations} are summed up with the transformed features of its neighbouring atoms and bonds.
+ \item These \textit{self activations} are summed up with the transformed features of its neighbouring nodes and edges. See update\_layer() in build\_convnet.py for actual implementation realted to point 1 and 2.
  
- \item Now, to find the transformed features of neighbours for each atom node, first the neighboring atom nodes and corresponding bonds of each atom node is found. Then their feature vectors are found using RDKit. These feature vectors are then concatenated. 
+ \item Now, to find the transformed features of neighbours for each node, first the neighboring nodes and the corresponding edges/bonds of each node is found. Then their feature vectors are found using RDKit. These feature vectors are then concatenated. These concatenated features are then transformed by a weight matrix aka \textit{filter} to give \textit{activations by degree}. Degree of an atom is defined to be its number of directly-bonded neighbors. As any atom can have maximum of 5 degrees (for organic molecules), we need 5 different \textit{fiters}. 
  
- \item These concatenated features are again transformed by another weight matrix aka \textit{filter} to give \textit{activations by degree}. Degree of an atom is defined to be its number of directly-bonded neighbors. As any atom can have maximum of 5 degrees (for organic molecules), we need 5 different \textit{fiters}. 
+ \item Another point to note here is that at the time of creation, the list of nodes is sorted according to their degrees. The top node in the list is the node of degree 0 or 1 and the last node is of maximum degree of all the nodes in the dataset. For each degree, the corresponding set of nodes are selected and their neighbours are found out. Then the neighbours belonging to a particular degree node is multiplied by a particular \textit{filter} to get \textit{activations by degree} as mentioned in the previous point. This is done for all the degrees. The results are then appended together one after another to get the transformed neighbour activations for each node in the array\_rep[`atom\_features'] list. See matmult\_neighbors() in build\_convnet.py for actual implementation realted to point 3, 4 and 5.
  
- \item Another point to note here is that the list of atoms is sorted according to the degree of atoms. The top atom in the list is the atom of degree 0 or 1 and the last atom is of maximum degree of all the atoms in the dataset. For each degree corresponding set of atoms are selected and their neighbours are found out. Then the neighbours belonging to a particular degree atom is multiplied by a particular \textit{filter} to get \textit{activations by degree} as mentioned in the previous point. This is done for all the degrees. The results are then appended one after another to get the transformed neighbour activations for each atom in the list.
+ \item As mentioned earlier in the second point, these transformed neighbour activations are then added to the \textit{self activations} to get the summed activations. 
  
- \item As mentioned eatlier in the second point, these transformed neighbour activations are then added to the \textit{self activations} to get the summed activations. 
+ \item These summed activations are then passed through an activation function (relu here) to get the final activations which has to be fed to the next layer. 
  
- \item These summed activations are then passed through an activation function (here relu) to get the final activations to be fed to the next layer. 
- 
- \end{itemize}
+ \end{enumerate}
  
  \textbf{Vertical Pass:}
- \begin{itemize}
- \item For vertical pass, input of the current layer is multiplied by output weight matrix aka \textit{layer output weights} and is passed through a softmax which results in a fixed size vector. This results in the blue tensors shown in the Figure~\ref{neural_fp}.
+ \begin{enumerate}
+ \item For vertical pass, input of the current layer is multiplied by output weight matrix aka \textit{layer\_output\_weights} and is passed through a softmax which results in a fixed size vector of size \textit{FingerPrint\_size}. This results in the blue tensors shown in the Figure~\ref{neural_fp}.
  
- \item After multiplyig weight matrix with the set of atom features and getting a huge matrix of size (\#atoms, FP\_size) i.e. blue tensors, we then sum up the subsets of atom activations that belong to each seperate molecule. This is called \textit{sum\_and\_stack} operation. This results in a grey tensor of size (\#molecules, FP\_size). We get this type of different grey tensors for each layer (including the Input\_Layer).
+ \item After multiplyig weight matrix with the set of atom features and getting a huge matrix of size (\#Atoms, FP\_size) i.e. blue tensors, we then sum up the atom activations molecule-wise. That is for every molecule, sum up the activations of its nodes. This is called \textit{sum\_and\_stack} operation. This results in a grey tensor of size (\#Molecules, FingerPrint\_size). We get different grey tensors for each layer (including the Input\_Layer).
  
- \item Next, we sum up these tensors/matrices from each layer to get a single Fingerprint matrix of size (\#molecules, FP\_size) - red tensor. This is our final fingerprint output which we are going to improve later by updating the weights of the``convolution" aka fingerprint network by gradient descent.
+ \item Next, we sum up these tensors/matrices from each layer to get a single Fingerprint matrix of size (\#Molecules, FP\_size) - red tensor. This is our final fingerprint output which we are going to improve later by updating the weights of the `convolution' aka fingerprint network by gradient descent. See output\_layer\_fun\_and\_atom\_activations() in build\_convnet.py for actual implementation realted to point 1, 2 and 3.
  
- \end{itemize}
+ \end{enumerate}
  
  So, to summarize, we can say that in total we deal with 3 types of weight matrices.
  
@@ -96,24 +114,7 @@ In horizontal pass, outputs of the previous layer is updated and tranformed as i
 \end{itemize}
 
 
-
-%It is done by finding the neighboring atoms and bonds of each atom, finding their feature vectors and then concatenating them. These concatenated features are again transformed by another weight matrix aka \textit{filter} to give \textit{activations by degree}. Degree of an atom is defined to be its number of directly-bonded neighbors. As any atom can have maximum of 5 degrees (for organic molecules), we need 5 different \textit{fiters}. Atoms are sorted according to the degrees. The top atom is the atom of degree 0 or 1 and the last atom is of maximum degree of all the atoms in the dataset. For each degree some set of atoms will be selected and their neighbours will be found out. Then the neighbours belonging to a particular degree will be multiplied by a particular \textit{filter} to get \textit{activations by degree} for that particular degree. This is done for all the degrees. 
-%
-%For vertical pass, input of the current layer is multiplied by output weight matrix aka \textit{layer output weights} which results in a fixed size vector.
-%
-%After multiplyig weight matrix with the set of atom features and getting a huge matrix of size (\#atoms, FP\_size), we then sum up the subsets of atom activations that belong to a seperate molecule. This results in a matrix of size (\#molecules, FP\_size). We get this type of different matrix for each layer (including the Input\_Layer). Next, sum up these matrices from each layer to get a single Fingerprint matrix of size (\#molecules, FP\_size). This is our final fingerprint output which we are going to improve later by updating the weights of the "convolution" aka fingerprint network by gradient descent.\\
-%
-%So, in total we deal with 3 types of weight matrices.
-%
-%\begin{itemize}
-%\item Self filter (One for each transformation among layers)
-%\item Filter (One for each degree)
-%\item Output Weight matrix (One for each layer including the Input\_Layer)
-%
-%
-%\end{itemize}
-
-This fingerprint is treated as input to a linear regression module or another neural network to predict solubility. The root mean squared error in solubility is backpropogated till the start of Fingerprint network to tune the weights of the complete network along with the weights of the linear regressor. The detailed view of fingerprint network that extracts fixed size fingerprints for each molecule can be seen in Figure~\ref{neural_fp}.
+This fingerprint is treated as input to a linear regression module or another neural network to predict solubility. The root mean squared error in solubility is backpropogated till the start of Fingerprint network to tune the weights of the complete network along with the weights of the linear regressor. The error gradients are found out using a python based automatic differentiation package known as autograd (https://github.com/HIPS/autograd) which I have treated as a blackbox. The detailed view of fingerprint network that extracts fixed size fingerprints for each molecule can be seen in Figure~\ref{neural_fp}.
 
 \begin{figure}[]
 	\centering
@@ -122,15 +123,31 @@ This fingerprint is treated as input to a linear regression module or another ne
 	\includegraphics[scale=.50]{neural_fp.png}
 \end{figure}
 
-\section{Visualization	}
-This section describes about the intrepretability of the features learned. To visualize which atoms contriubute most towards solubility, they tried to find out the atoms that have the highest activations among all the layers of the fingerprint network. Before \textit{sum\_and\_satck} operation they appended the blue tensors shown in the figure~\ref{neural_fp} into one long list. They then calculated, for each index of fingerprint, which atom for the the same index as of fingerprint, has the highest activation. Then highlighted that atom. The neighbours are also highlighted based on the radius of the atom under consideration. If radius is 0, the atom itself is highlighted. If radius is 1, the atom and its neighbours are highlighted. If radius is 2, then the atom, its neighbours and its neighbours' neighbours are highlighted and so on. Radius refers to the layer of neural net the atom with the highest activation belonged to.
+
+\section{Visualization}
+This section describes about the intrepretability of the features learned. To visualize which atoms/substructures contriubute the most towards solubility, they tried to find out the atoms that have the highest activations among all the layers of the fingerprint network. Before \textit{sum\_and\_satck} operation they appended the blue tensors shown in the figure~\ref{neural_fp} into one long list. They then calculated, for each index of fingerprint, which atom/node for the the same index as that of fingerprint, has the highest activation. Then that node is put to the list of nodes to be highlighted. The neighbours are also put in this list based on the radius of the atom under consideration. If radius is 0, the atom/node itself is highlighted. If radius is 1, the atom/node and its neighbours are highlighted. If radius is 2, then the atom/node, its neighbours and its neighbours' neighbours are highlighted and so on. Radius refers to the layer of neural net the atom/node with the highest activation belonged to. This is done for all the fingerprint vector indexes. Instead of just the highest activation node, actually they have considered top 11 nodes and drew a seperate highlighted molecule for each of them.
 
 % Before sum and stack, we actually append all the atom activations of all the layers in one list. It is from this list we are finding the maximally activated atoms and highlighting.
 
-I think what they mean is that to get higher solubility, all the values of fingerprint should be high. For the values of fingerprint should be high, the corresponding atom activations should be high.
+I think what they mean is that to get the highest solubility, all the values of fingerprint should be high. For the values of fingerprint should be high, the corresponding atom activations should be high.
 
-They then plotted the atoms and highlighted them that contributed highest to the solubility.
+Following is the detailed procedure for selecting the relevant nodes, finding out which graph/molecule it belonged to and then plotting the molecule with the relevant atoms/nodes being highlighted.\\
 
+%They then plotted the atoms/nodes of molecule and highlighted them that contributed highest to the solubility. Following is the procedure to plot and visualize the specific atoms of a molecule.
+For each index \textbf{idx} of fingerprint vector:
+\begin{enumerate}
+\item  We create a list called \textit{combined\_list} that contains the tuples, each having values (activation[idx], atom\_ix, radius) sorted according to activation value. The activation[idx] is the value of activation at the $idx^{th}$ index of the transformed feature vector of the node. This combined list is actually created by appending the blue tensors shown in the figure~\ref{neural_fp} in a long list before \textit{sum\_and\_satck} operation.
+
+\item The sorted \textit{combined\_list} will give us the 3 things - the index of highest activated atom/node , its activation value and its radius.
+
+\item Parent molecule/SMILE index is found out for that atom/node. As described earlier the neighbour nodes are found out based on the radius of the highest activated atom.
+
+\item The index of nodes to be highlighted are the indexes of nodes in the array\_rep[`atom\_features'] matrix. We first need to know which molecule does it belong to. This is done using dictionary value of array\_rep[`atom\_list'].  After that, it is needed to be mapped back to corresponding nodes of the parent molecule. This is done by using the dictionary array\_rep[`rdkit\_ix'].
+
+\item Now we know the specific molecule and the specific atoms we need to highlight. We again use the RDKit functionality to do the plotting  and highlighting work. See draw\_molecule\_with\_highlights() of visualization.py for implementation details.
+
+\end{enumerate}
+%%%%%%%%%%%%%%%%%%%%% write about arrayrep now
 \bibliographystyle{unsrt}
 \bibliography{ref}
 \end{document}
