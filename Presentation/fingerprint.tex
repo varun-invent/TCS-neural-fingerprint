@@ -1,0 +1,192 @@
+\documentclass{beamer}
+\usepackage[square,numbers,comma,sort&compress]{natbib}
+\usepackage{mathtools}
+\usepackage{graphicx}
+\usepackage{float}
+\usetheme{Boadilla}
+
+\title[Neural Fingerprint]{An explanation of the paper -\\``Convolutional Networks on Graphs
+for Learning Molecular Fingerprints"}
+%\subtitle{Using Beamer}
+\author{Varun Kumar}
+\institute[BITS Pilani]{BITS Pilani\\ K.K. Birla Goa Campus}
+\date[TCS I-Lab]{\today}
+\usepackage{bbm}
+\begin{document}
+
+%Frame 1
+\begin{frame}
+\titlepage
+\end{frame}
+
+% FRAME 2
+\begin{frame}
+\frametitle{What do we want to do?}
+Extract fixed size feature vector from an arbitrary molecule.
+\end{frame}
+
+% FRAME 3
+\begin{frame}
+\frametitle{Dataset}
+	The solubility dataset \citep{delaney2004esol} to extract the features and predict solubility of compounds.
+	\vspace{4px}
+	SMILES representation of molecules were used for training with `measured solubility in moles per litre' as target labels.
+	\begin{table}[H]
+	\centering
+	\caption{Snapshot of dataset used}
+	\label{dataset}
+	\scalebox{0.7}{
+	\begin{tabular}{|l|l|}
+	\hline
+	\textbf{Smiles}                                        & \textbf{Solubility} \\ \hline
+	OCC3OC(OCC2OC(OC(C\#N)c1ccccc1)C(O)C(O)C2O)C(O)C(O)C3O & -0.77                                              \\ \hline
+	Cc1occc1C(=O)Nc2ccccc2                                 & -3.3                                               \\ \hline
+	CC(C)=CCCC(C)=CC(=O)                                   & -2.06                                              \\ \hline
+	c1ccc2c(c1)ccc3c2ccc4c5ccccc5ccc43                     & -7.87                                               \\ \hline
+	c1ccsc1                                                & -1.33                                              \\ \hline
+	\end{tabular}}
+	\end{table}
+
+\end{frame}
+
+
+% FRAME 4
+\begin{frame}
+\frametitle{Input to the Neural Network}
+	\begin{enumerate}
+		\item[1.] Each SMILE is converted to a graph with the nodes representing atoms and edges representing bonds.
+		
+		\item[2.] Handcrafted features are extracted from each node and edge and is called \textit{atom\_features} and \textit{bond\_features} respectively.
+		
+		\item[3.] A tensor is created of these \textit{atom\_features} for all the nodes of graphs/molecules taken in the training set/minibatch.
+		
+		\item[4.] This \textit{input\_tensor} of size (\#Nodes, length(atom\_features)) is used as the input to neural network.
+	\end{enumerate}
+\end{frame}
+
+
+% Frame 5
+\begin{frame}
+\frametitle{An important data structure}
+\begin{enumerate}
+
+	\item[1.] array\_rep[`atom\_features'] - The value for this is a matrix of size (\#Nodes, length(atom\_features)). It stores the node features (of the dataset) sorted according to their degrees.
+	
+	\item[2.] array\_rep[`bond\_features'] - The value for this is a matrix of size (\#Edges, length(bond\_features)). It stores the edge features (of the dataset) sorted according to their degrees.
+	
+	\item[3.] array\_rep[`atom\_list'] - The value for this is a matrix of size (\#SMILES, x); where the value of x is variable and it  represents the index of nodes in each SMILE/graph/compound/molecule. Each index points to the index of atom in array\_rep[`atom\_features']
+
+
+
+\end{enumerate}
+\end{frame}
+
+% Frame 6
+\begin{frame}
+\frametitle{An important data structure}
+
+\begin{enumerate}
+	\item[4.] array\_rep[`rdkit\_ix'] - RDKit, after converting each SMILE to a graph, numbers each node in it (graph) to a unique number (number is unique within the same graph but can be reused among multiple graphs). The value for this dictionary key is an array which contains numerical identifier of the nodes set by RDKit which gives its position in the graph to which each of them belongs.
+		
+	\item[5.] array\_rep[(`atom\_neighbors',\textbf{degree})] - This gives the atom/node neighbors of all the atoms/nodes in the dataset for the  particular \textbf{degree}. Its size is (\#Nodes of degree = \textbf{degree} , y); where the value of y is variable and it represents the neighbouring directly bonded nodes.
+		
+	
+
+\end{enumerate}
+	
+\end{frame}
+
+
+% Frame 7
+\begin{frame}
+\frametitle{An important data structure}
+
+\begin{enumerate}
+\item[6.] array\_rep[(`bond\_neighbors',\textbf{degree})] - It gives the matrix of size (\#Nodes of degree = \textbf{degree} , z); where the value of z is variable and it represents the neighbouring bonds (not quite sure about z). See array\_rep\_from\_smiles() in build\_convnet.py for implementation details regarding all the above points in this section. 
+
+\end{enumerate}
+	
+\end{frame}
+
+
+% Frame 8
+\begin{frame}
+\frametitle{Overall architecture}
+\begin{figure}[]
+	\centering
+	\caption{A highlevel view of the architecture}
+	\label{arch}
+	\includegraphics[scale=.50]{arch.png}
+\end{figure}
+\end{frame}
+
+% Frame 9
+\begin{frame}
+\frametitle{Neural fingerprint architecture}
+\begin{figure}[]
+	\centering
+	\caption{Neural fingerprint architecture}
+	\label{neural_fp}
+	\includegraphics[scale=.21]{neural_fp.png}
+\end{figure}
+\end{frame}
+
+% Frame 10
+\begin{frame}
+\frametitle{Methodology - Horizontal Pass}
+\begin{enumerate}
+ \item[1.] At each layer, the atom/node features of previous layer is first transformed by some weight matrix aka \textit{self filter} (which changes the size of the features to size of the next layer), resulting in \textit{self activations}.
+ 
+ \item[2.] These \textit{self activations} are summed up with the transformed features of its neighbouring nodes and edges.
+ 
+ \item[3.] Now, to find the transformed features of neighbours for each node, first the neighboring nodes and the corresponding edges/bonds of each node is found. Then their feature vectors are found using RDKit. These feature vectors are then concatenated. These concatenated features are then transformed by a weight matrix aka \textit{filter} to give \textit{activations by degree}.
+ 
+ \item[4.] These summed activations are then passed through an activation function (relu here) to get the final activations which has to be fed to the next layer. 
+ 
+ \end{enumerate}
+\end{frame}
+
+% Frame 11
+\begin{frame}
+\frametitle{Methodology - Vertical Pass}
+\begin{enumerate}
+\item[1.]  Input of the current layer is multiplied by output weight matrix aka \textit{layer\_output\_weights} and is passed through a softmax which results in a fixed size vector of size \textit{FingerPrint\_size}. This results in the blue tensors shown in the Figure~\ref{neural_fp}.
+
+\item[2.] After multiplyig weight matrix with the set of atom features and getting a huge matrix of size (\#Atoms, FP\_size) i.e. blue tensors, we then sum up the atom activations molecule-wise. That is for every molecule, sum up the activations of its nodes. This is called \textit{sum\_and\_stack} operation. This results in a grey tensor of size (\#Molecules, FingerPrint\_size). We get different grey tensors for each layer (including the Input\_Layer).
+
+\item[3.] Next, we sum up these tensors/matrices from each layer to get a single Fingerprint matrix of size (\#Molecules, FP\_size) - red tensor.
+\end{enumerate}
+\end{frame}
+
+
+% Frame 12
+\begin{frame}
+\frametitle{Methodology }
+
+This fingerprint is treated as input to a linear regression module or another neural network to predict solubility. The root mean squared error in solubility is backpropogated till the start of Fingerprint network to tune the weights of the complete network along with the weights of the linear regressor.
+
+\end{frame}
+
+
+% Frame 13
+\begin{frame}
+\frametitle{Visualization}
+\begin{enumerate}
+
+\item[1.] To get the highest solubility, all the values of fingerprint should be high. For the values of fingerprint should be high, the corresponding atom activations should be high.
+\item[2.] For each fingerprint \textbf{index}, a node/atom before \textit{sum\_and\_stack} is found out which has the highest activation value for that \textbf{index}.
+\item[3.] Parent molecule is found out is found out for that node.
+\item[4.] Molecule is ploted and the atom selected in point 2. is highlighted. 
+
+
+\end{enumerate}
+\end{frame}
+
+% Frame 14
+\begin{frame}
+Bibliography
+\bibliographystyle{unsrt}
+\bibliography{ref}
+
+\end{frame}
+\end{document}
